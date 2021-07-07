@@ -1,3 +1,5 @@
+[![Build Status](https://drone.improwised.dev/api/badges/Improwised/RCE/status.svg?ref=refs/heads/main)](https://drone.improwised.dev/Improwised/RCE)
+
 # Remote Code Execution (RCE)
 
 Remote Code Execution allow you to run code by send APIs.
