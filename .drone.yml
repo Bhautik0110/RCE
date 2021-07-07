@@ -1,0 +1,136 @@
+kind: pipeline
+type: docker
+name: apricot-rce
+trigger:
+  event:
+    include:
+      - push
+    exclude:
+      - tag
+      - pull_request
+
+steps:
+  - name: pre-slack-notification
+    image: plugins/slack
+    pull: if-not-exists
+    settings:
+      webhook:
+        from_secret: slack_webhook
+      template: >
+        *🏁 CI Begin for Build #{{build.number}}*
+
+        *Project: * {{ repo.name }}
+
+        *Commit Message:* ${DRONE_COMMIT_MESSAGE:0:122}
+
+        *Commit ID:* <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
+
+        *Branch:* <https://github.com/{{ repo.owner }}/{{ repo.name }}/commits/{{ build.branch }}|{{ build.branch }}>
+
+        *Author:* {{ build.author }}
+
+        <{{ build.link }}|Visit build page ↗>
+      channel: apricot2
+    when:
+      event:
+        include:
+          - push
+        exclude:
+          - tag
+          - pull_request
+
+  - name: web-installation
+    image: node:14.16.0-alpine3.10
+    pull: if-not-exists
+    commands:
+      - npm install
+    when:
+      event:
+        include:
+          - push
+        exclude:
+          - tag
+          - pull_request
+
+  - name: web-test
+    depends_on: [pre-slack-notification,web-installation]
+    image: node:14.16.0-alpine3.10
+    pull: if-not-exists
+    commands:
+      - npm run test
+    when:
+      event:
+        include:
+          - push
+        exclude:
+          - tag
+          - pull_request
+
+  - name: container-image-build
+    depends_on: [web-test,web-installation]
+    image: improwised/img-mbt:alpine-0-0-1
+    privileged: true
+    pull: if-not-exists
+    environment:
+      DOCKER_USERNAME:
+        from_secret: docker_username
+      DOCKER_PASSWORD:
+        from_secret: docker_password
+      repo: improwised/RCE
+    commands:
+      - |
+        TAG=improwised/apricot-rce:${DRONE_BRANCH/\//-}-${DRONE_COMMIT_SHA:0:7}-$(date +%s)
+        img build -t ${TAG} -f Dockerfile --no-console .
+        img login --username=${DOCKER_USERNAME} --password=${DOCKER_PASSWORD}
+        img push ${TAG}
+    when:
+      event:
+        include:
+          - push
+        exclude:
+          - tag
+          - pull_request
+      branch:
+        include:
+          - develop
+          - main
+          - master
+        exclude:
+          - feature/*
+          - hotfix/*
+
+  # Post slack notification
+  - name: post-slack-notification
+    depends_on:
+      - "container-image-build"
+      - "web-test"
+      - "pre-slack-notification"
+      - "web-installation"
+    image: plugins/slack
+    pull: if-not-exists
+    settings:
+      webhook:
+        from_secret: slack_webhook
+      channel: apricot2
+      template: >
+        *{{#success build.status}}🎉{{ else }}✘{{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }}* (type: `{{ build.event }}`)
+
+        *Project: * {{ repo.name }}
+
+        *Commit Message:* ${DRONE_COMMIT_MESSAGE:0:122}
+
+        *Commit ID:* <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
+
+        *Branch:* <https://github.com/{{ repo.owner }}/{{ repo.name }}/commits/{{ build.branch }}|{{ build.branch }}>
+
+        *Author:* {{ build.author }}
+
+        <{{ build.link }}|Visit build page ↗>
+    when:
+      status: [success, failure]
+      event:
+        include:
+          - push
+        exclude:
+          - tag
+          - pull_request
