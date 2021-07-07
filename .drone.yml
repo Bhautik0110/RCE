@@ -40,7 +40,7 @@ steps:
           - pull_request
 
   - name: web-installation
-    image: node:12-alpine
+    image: node:12-buster
     pull: if-not-exists
     commands:
       - npm install
@@ -54,7 +54,7 @@ steps:
 
   - name: web-test
     depends_on: [pre-slack-notification,web-installation]
-    image: node:12-alpine
+    image: node:12-buster
     pull: if-not-exists
     commands:
       - npm run test
