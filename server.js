@@ -49,6 +49,10 @@ app.use(cors());
 app.use(pino);
 
 /// APIs
+app.get("/healthz", (req, res) => {
+  return res.status(200).json({ status: "running" });
+});
+
 app.post("/run", async (req, res) => {
   let startTime = Date.now();
   let lang = req.body.language;
