@@ -53,7 +53,7 @@ steps:
           - pull_request
 
   - name: web-test
-    depends_on: [pre-slack-notification,web-installation]
+    depends_on: [web-installation]
     image: node:12-buster
     pull: if-not-exists
     commands:
@@ -67,7 +67,7 @@ steps:
           - pull_request
 
   - name: container-image-build
-    depends_on: [web-test,web-installation]
+    depends_on: [web-test]
     image: improwised/img-mbt:alpine-0-0-1
     privileged: true
     pull: if-not-exists
@@ -105,7 +105,6 @@ steps:
       - "container-image-build"
       - "web-test"
       - "pre-slack-notification"
-      - "web-installation"
     image: plugins/slack
     pull: if-not-exists
     settings:
