@@ -79,6 +79,7 @@ steps:
       repo: improwised/RCE
     commands:
       - |
+        set -ex
         IMAGE="improwised/apricot-rce:${DRONE_BRANCH}-${DRONE_COMMIT_SHA:0:7}-$(date +%s)"
         img build --no-console -t $IMAGE -f Dockerfile .
         img login --username=$DOCKER_USERNAME --password=$DOCKER_PASSWORD
