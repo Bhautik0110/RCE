@@ -79,10 +79,11 @@ steps:
       repo: improwised/RCE
     commands:
       - |
-        TAG=improwised/apricot-rce:${DRONE_BRANCH/\//-}-${DRONE_COMMIT_SHA:0:7}-$(date +%s)
-        img build -t ${TAG} -f Dockerfile --no-console .
+        set -ex
+        IMAGE=improwised/apricot-rce:${DRONE_BRANCH/\//-}-${DRONE_COMMIT_SHA:0:7}-$(date +%s)
+        img build -t ${IMAGE} -f Dockerfile --no-console .
         img login --username=${DOCKER_USERNAME} --password=${DOCKER_PASSWORD}
-        img push ${TAG}
+        img push ${IMAGE}
     when:
       event:
         include:
