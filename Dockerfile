@@ -20,7 +20,7 @@ RUN \
     set -ex; \
     apk fetch openjdk8; \
     apk add --no-cache openjdk8
-ENV JAVA_HOME="/usr/lib/jvm/java-1.8-openjdk" PATH="$JAVA_HOME/bin:${PATH}" CLASSPATH="/tmp/"
+ENV PATH="/usr/lib/jvm/java-1.8-openjdk/bin:${PATH}"
 
 ### PHP INSTALLATION
 RUN apk add --no-cache php7
@@ -38,5 +38,13 @@ COPY . .
 RUN adduser RCE -D
 
 USER RCE
+
+RUN javac -version && \
+    java -version && \
+    node -v && \
+    go version && \
+    gcc -v && \
+    php -v && \
+    python -V
 
 CMD ["node", "server.js"]
