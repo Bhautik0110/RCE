@@ -65,7 +65,7 @@ async function compile(path, code, inputs, expOutput, tmpDir) {
           });
         } else {
           /// This function executes java program
-          let output = await run(inputs, expOutput, path);
+          let output = await run(inputs, expOutput, path, tmpDir.name);
           tmpDir.removeCallback();
           resolve(output);
         }
@@ -80,9 +80,9 @@ async function compile(path, code, inputs, expOutput, tmpDir) {
  * @param {String} expOutput
  * @returns
  */
-async function run(inputs, expOutput, path) {
+async function run(inputs, expOutput, path, dir) {
   return new Promise(async (resolve, reject) => {
-    let p = spawn("java", [path, "Program"], { stdio: ["pipe"] });
+    let p = spawn("java", ["Program"], { stdio: ["pipe"], cwd:  dir});
 
     let timout = setTimeout(() => {
       if (!p.killed) {
