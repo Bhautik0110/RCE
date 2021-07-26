@@ -126,9 +126,9 @@ let cleanup = null;
 const server = app.listen(5124, "0.0.0.0", () => {
   logger.info("Server is started!");
   // Start 10s cleanup
-  cleanup = setInterval(() => {
-    psList();
-  }, 10000);
+  // cleanup = setInterval(() => {
+  //   psList();
+  // }, 10000);
 });
 
 async function psList() {
@@ -158,7 +158,7 @@ process.on("SIGINT", () => {
       process.exit(1);
     }
   });
-  clearInterval(cleanup);
+ // clearInterval(cleanup);
 
   //  In production Graceful ShutDown
   setTimeout(() => {
@@ -175,7 +175,7 @@ process.on("SIGTERM", () => {
       process.exit(1);
     }
   });
-  clearInterval(cleanup);
+  // clearInterval(cleanup);
   // In production Graceful ShutDown
   setTimeout(() => {
     logger.fatal("Server is closed due to SIGTERM!");
