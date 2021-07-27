@@ -2,11 +2,8 @@
 /// Packages
 const express = require("express");
 const cors = require("cors");
-const terminate = require("terminate");
-const { snapshot } = require("process-list");
 const { java, others, cpp, c } = require("./languages/index.js");
 const { getDiff } = require("./diff.js");
-const { getDefaultLibFileName } = require("typescript");
 const logger = require("pino")();
 const pino = require("pino-http")();
 
@@ -128,35 +125,10 @@ app.use("*", (req, res) => {
   res.status(404).send("Page not found!");
 });
 
-let cleanup = null;
-
 /// Server
 const server = app.listen(5124, "0.0.0.0", () => {
   logger.info("Server is started!");
-  // Start 10s cleanup
-  // cleanup = setInterval(() => {
-  //   psList();
-  // }, 10000);
 });
-
-async function psList() {
-  const APP_PID = process.id;
-  const tasks = await snapshot("pid", "starttime");
-  for (const task of tasks) {
-    // Process is 10s old
-    if (new Date().getTime() - new Date(task.starttime).getTime() > 10000) {
-      if (task.pid !== APP_PID) {
-        terminate(task.pid, (err) => {
-          if (err) {
-            logger.info("Server is closed due to error in process!");
-            logger.error(err);
-            process.exit(1);
-          }
-        });
-      }
-    }
-  }
-}
 
 process.on("SIGINT", () => {
   logger.info("Server is closing due to SIGINT!");
@@ -166,9 +138,8 @@ process.on("SIGINT", () => {
       process.exit(1);
     }
   });
- // clearInterval(cleanup);
 
-  //  In production Graceful ShutDown
+  // In production Graceful ShutDown
   setTimeout(() => {
     logger.fatal("Server is closed due to SIGINT!");
     process.exit(0);
@@ -183,8 +154,7 @@ process.on("SIGTERM", () => {
       process.exit(1);
     }
   });
-  // clearInterval(cleanup);
-  // In production Graceful ShutDown
+
   setTimeout(() => {
     logger.fatal("Server is closed due to SIGTERM!");
     process.exit(0);
