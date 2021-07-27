@@ -5,6 +5,8 @@ const cors = require("cors");
 const terminate = require("terminate");
 const { snapshot } = require("process-list");
 const { java, others, cpp, c } = require("./languages/index.js");
+const { getDiff } = require("./diff.js");
+const { getDefaultLibFileName } = require("typescript");
 const logger = require("pino")();
 const pino = require("pino-http")();
 
@@ -79,9 +81,15 @@ app.post("/run", async (req, res) => {
   /// Run program
   /// Return time in milliseconds
   let result = await run(lang, code, input, eo);
+
+  responseJson = {
+    ...result,
+    ...{ totalTime: Date.now() - startTime },
+    ...{ diff: await getDiff(result) }
+  }
   return res
     .status(200)
-    .json({ ...result, ...{ totalTime: Date.now() - startTime } });
+    .json(responseJson);
 });
 
 /// Functions
