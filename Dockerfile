@@ -33,6 +33,8 @@ COPY package*.json ./
 
 RUN npm install && apk del .gyp && rm -rf /var/cache/apk/*
 
+RUN npm install nodemon -g
+
 COPY . .
 
 RUN adduser RCE -D
@@ -47,4 +49,6 @@ RUN javac -version && \
     php -v && \
     python -V
 
-CMD ["node", "server.js"]
+VOLUME [ "/app" ]
+
+CMD ["nodemon", "index.js"]

@@ -13,11 +13,11 @@ const getDiff = ({actual, expected, hasError}) => {
   return new Promise(async resolve => {
     if (hasError) return resolve("");
     let files = [writeFile(actual), writeFile(expected)];
-    console.log(files.map(f => f.name));
+    // console.log(files.map(f => f.name));
     let cmd = new Command("diff",files.map(f => f.name));
     await cmd.run();
     files.forEach(f => f.removeCallback());
     return cmd.hasError()? resolve("Error while matching output."): resolve(cmd.output);
   });
 }
-module.exports = { getDiff }
+module.exports = getDiff

@@ -1,6 +1,8 @@
-version: "2.2"
+version: "3"
 services:
   rce:
     build: .
+    volumes: 
+      - ./:/app
     ports:
       - 5124:5124
