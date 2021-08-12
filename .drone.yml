@@ -134,3 +134,6 @@ steps:
         exclude:
           - tag
           - pull_request
+
+image_pull_secrets:
+  - dockerconfig_secret
