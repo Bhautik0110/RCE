@@ -1,15 +1,12 @@
-const { Command } = require("../command.js");
+const command = require("../fcmd.js");
 const {runner, dir} = require('./common.js')
 
-const runCode = file => {
+const runCode = (file, opt) => {
   return new Promise(async (resolve, reject) => {
-    try {
-      let cmd = new Command("go", ["run", "Program.go"]);
-      await cmd.run({cwd: dir(file.name)})
-      resolve(cmd)
-    } catch(e) {
-      reject(e)
-    }
+    command("go", ["run", "Program.go"])
+      .run({cwd: dir(file.name), ...opt})
+      .then(resolve)
+      .catch(reject)
   });
 }
 

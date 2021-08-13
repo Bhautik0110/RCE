@@ -1,7 +1,10 @@
 const tmp = require("tmp");
 const fs = require("fs");
+const command = require("./fcmd");
+const { rejects } = require("assert");
 
-const {Command} = require("./command.js");
+// const {Command} = require("./command.js");
+
 
 const writeFile = content => {
   let file = tmp.fileSync();
@@ -10,14 +13,17 @@ const writeFile = content => {
 }
 
 const getDiff = ({actual, expected, hasError}) => {
-  return new Promise(async resolve => {
+  return new Promise((resolve, reject) => {
     if (hasError) return resolve("");
     let files = [writeFile(actual), writeFile(expected)];
-    // console.log(files.map(f => f.name));
-    let cmd = new Command("diff",files.map(f => f.name));
-    await cmd.run();
-    files.forEach(f => f.removeCallback());
-    return cmd.hasError()? resolve("Error while matching output."): resolve(cmd.output);
+    command("diff", files.map(f => f.name))
+    .run()
+    .then(({error, output, timeout}) => {
+      if (error && error.trim() != "") return reject("Error while matching output.");
+      if(timeout === true) return reject("Timeout");
+      resolve(output);
+      files.forEach(f => f.removeCallback());
+    });
   });
 }
 module.exports = getDiff

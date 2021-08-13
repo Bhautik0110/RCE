@@ -1,15 +1,15 @@
 const { spawn, exec } = require("child_process");
 const { streamWrite, streamEnd } = require("@rauschma/stringio");
 
-const command = (cmd, args = [], opts = {}) => {
+const command = (cmd, args = []) => {
   let complete = false;
   let waitControl = null;
 
-  const success = (fn, error, output) => {
+  const success = (fn, error, output, timeout = false) => {
     if (complete) return;
     if (waitControl != null) clearInterval(waitControl);
     complete = true
-    fn({error, output})
+    fn({error, output, timeout})
   }
 
   const fail = (fn, e) => {
@@ -19,10 +19,10 @@ const command = (cmd, args = [], opts = {}) => {
     fn(e)
   }
 
-  const run = iopts => {
+  const run = opts => {
     return new Promise((resolve, reject) => {
       
-      let {input, timeout} = { timeout: 4000, ...opts, ...iopts };
+      let {input, timeout} = { timeout: 4000, ...opts };
       let output = error = ""
 
       // Create new child process 
@@ -35,7 +35,7 @@ const command = (cmd, args = [], opts = {}) => {
       waitControl = setTimeout(() => {
         if (!p.killed) {
           p.kill(); /// Kill after 4s
-          success(resolve, error, output)
+          success(resolve, error, output, true)
         }
       }, timeout)
 
@@ -62,9 +62,9 @@ const command = (cmd, args = [], opts = {}) => {
     })
   }
 
-  const execute = iopts => {
+  const execute = opts => {
     return new Promise((resolve, reject) => {
-      exec([cmd, ...args].join(" "), {...opts, ...iopts}, (err, out, serr) => {
+      exec([cmd, ...args].join(" "), opts, (err, out, serr) => {
         if(err) {
           return fail(reject, err)
         }

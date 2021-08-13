@@ -1,34 +1,33 @@
-const { Command } = require("../command.js");
-const {fileWrite, executable, runner} = require('./common.js')
-const fs = require("fs");
+const command = require("../fcmd");
+const {runner} = require('./common.js')
 
-
+const executable = fpath => {
+  fpath = fpath.split(".")
+  fpath.pop();
+  fpath = fpath.join(".").split("/");
+  fpath.push(fpath.pop().split("-").join(""))
+  return fpath.join("/")
+}
 
 const compileCode = (file, compiler) => {
   return new Promise(async (resolve, reject) => {
-    try {
-      let exFile = executable(file.name);
-      let cmpl = new Command(compiler, ["-c", file.name])
-      let opgen = new Command(compiler, ["-o", exFile, file.name])
-      await cmpl.execute()
-      await opgen.execute()
-      resolve(true)
-    } catch(e) {
-      reject(e);
-    }
+    let exFile = executable(file.name);
+    command(compiler, ["-c", file.name])
+      .execute()
+      .then(() => {
+        command(compiler, ["-o", exFile, file.name])
+          .execute()
+          .then(() => resolve(true))
+          .catch(reject)
+      })
+      .catch(reject);
   })
 }
 
-const runCode = file => {
+const runCode = (file, opt) => {
   return new Promise(async (resolve, reject) => {
-    try {
-      let exFile = executable(file.name);
-      let cmd = new Command(exFile, []);
-      await cmd.run()
-      resolve(cmd)
-    } catch(e) {
-      reject(e)
-    }
+    let exFile = executable(file.name);
+    command(exFile).run(opt).then(resolve).catch(reject);
   });
 }
 

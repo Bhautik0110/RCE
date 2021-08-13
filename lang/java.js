@@ -1,28 +1,22 @@
-const { Command } = require("../command.js");
+const command = require("../fcmd.js");
 const {runner, dir} = require('./common.js')
 
 const compileCode = file => {
   return new Promise(async (resolve, reject) => {
-    try {
-      let cmpl = new Command("javac", [file.name])
-      await cmpl.execute({dir: dir(file.name)})
-      resolve(true)
-    } catch(e) {
-      reject(e);
-    }
+    command("javac", [file.name])
+      .execute({dir: dir(file.name)})
+      .then(() => resolve(true))
+      .catch(reject);
   })
 }
 
-const runCode = file => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let exFile = file.name.substr(0, file.name.length - 5);
-      let cmd = new Command("java", ["Program"]);
-      await cmd.run({cwd: dir(file.name)})
-      resolve(cmd)
-    } catch(e) {
-      reject(e)
-    }
+const runCode = (file, opt) => {
+  return new Promise((resolve, reject) => {
+    let exFile = file.name.substr(0, file.name.length - 5);
+    command("java", ["Program"])
+      .run({cwd: dir(file.name), ...opt})
+      .then(resolve)
+      .catch(reject);
   });
 }
 

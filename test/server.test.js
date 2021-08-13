@@ -73,7 +73,7 @@ describe("Check programs for C lang", () => {
         expect(err).to.be.null;
         expect(res).to.be.json
         expect(res).to.have.status(200)
-        expect(res.body.message).to.equal("Raised an error !")
+        expect(res.body.message).to.equal("Compilation failed")
         expect(res.body.expected).to.equal("Hello")
         expect(res.body.actual).to.not.equal("Hello")
         expect(res.body.hasError).to.be.true
@@ -103,6 +103,7 @@ describe("Check programs for C lang", () => {
   //     })
   // })
 })
+
 describe("Check program for C++", () => {
   it("should run c++ program normally.", done => {
     chai.request(app)
@@ -141,7 +142,7 @@ describe("Check program for C++", () => {
         expect(err).to.be.null;
         expect(res).to.be.json
         expect(res).to.have.status(200)
-        expect(res.body.message).to.equal("Raised an error !")
+        expect(res.body.message).to.equal("Compilation failed")
         expect(res.body.expected).to.equal("Hello")
         // expect(res.body.actual).to.not.equal("Hello")
         expect(res.body.hasError).to.be.true
@@ -171,7 +172,6 @@ describe("Check program for C++", () => {
   //     })
   // })
 })
-
 
 describe("Check program for Java", () => {
   it("should run program successfully.", done => {
@@ -211,7 +211,7 @@ describe("Check program for Java", () => {
         expect(err).to.be.null;
         expect(res).to.be.json
         expect(res).to.have.status(200)
-        expect(res.body.message).to.equal("Raised an error !")
+        expect(res.body.message).to.equal("Compilation failed")
         expect(res.body.expected).to.equal("Hello")
         // expect(res.body.actual).to.not.equal("Hello")
         expect(res.body.hasError).to.be.true
@@ -270,7 +270,6 @@ describe("Check program for Python", () => {
     })
   })
 })
-
 
 describe("Check program for PHP", () => {
   it("should run program successfully.", done => {

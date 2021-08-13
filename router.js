@@ -38,19 +38,18 @@ const router = app => {
     }
   
     /// Return time in milliseconds
-    let result = await codeRunner[lang](code, input, eo);
-  
-    responseJson = {
-      ...result,
-      ...{ totalTime: Date.now() - startTime },
-      ...{ diff: await getDiff(result) }
-    }
-    return res
-      .status(200)
-      .json(responseJson);
-  });
-  
-
+    codeRunner[lang](code, input, eo).then(result => {
+      getDiff(result).then(diff => {
+        return res.status(200).json({
+          ...result,
+          ...{ totalTime: Date.now() - startTime },
+          ...{ diff }
+        });
+      }).catch(console.log)
+    }).catch(console.log);
+  })
+    
+    
   app.use("*", (req, res) => {
     res.status(404).send("Page not found!");
   });
