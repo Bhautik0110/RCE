@@ -68,7 +68,7 @@ steps:
 
   - name: container-image-build
     depends_on: [web-test]
-    image: improwised/rce-base:latest
+    image: improwised/img-mbt:alpine-0-0-1
     privileged: true
     pull: if-not-exists
     environment:
