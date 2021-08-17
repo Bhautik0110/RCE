@@ -1,9 +1,6 @@
 const tmp = require("tmp");
 const fs = require("fs");
-const command = require("./fcmd");
-const { rejects } = require("assert");
-
-// const {Command} = require("./command.js");
+const command = require("./command.js");
 
 
 const writeFile = content => {
