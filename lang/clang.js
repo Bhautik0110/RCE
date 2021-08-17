@@ -9,14 +9,14 @@ const executable = fpath => {
   return fpath.join("/")
 }
 
-const compileCode = (file, compiler) => {
+const compileCode = (file, opt, compiler) => {
   return new Promise(async (resolve, reject) => {
     let exFile = executable(file.name);
     command(compiler, ["-c", file.name])
-      .execute()
+      .execute(opt)
       .then(() => {
         command(compiler, ["-o", exFile, file.name])
-          .execute()
+          .execute(opt)
           .then(() => resolve(true))
           .catch(reject)
       })
@@ -32,8 +32,8 @@ const runCode = (file, opt) => {
 }
 
 const getCompiler = cmplr => {
-  return file => {
-    return compileCode(file, cmplr)
+  return (file, opt) => {
+    return compileCode(file, opt, cmplr)
   }
 }
 
