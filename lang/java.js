@@ -1,10 +1,10 @@
 const command = require("../command.js");
-const {runner, dir} = require('./common.js')
+const {runner} = require('./common.js')
 
-const compileCode = file => {
+const compileCode = (file, opt) => {
   return new Promise(async (resolve, reject) => {
     command("javac", [file.name])
-      .execute({dir: dir(file.name)})
+      .execute(opt)
       .then(() => resolve(true))
       .catch(reject);
   })
@@ -12,9 +12,8 @@ const compileCode = file => {
 
 const runCode = (file, opt) => {
   return new Promise((resolve, reject) => {
-    let exFile = file.name.substr(0, file.name.length - 5);
     command("java", ["Program"])
-      .run({cwd: dir(file.name), ...opt})
+      .run(opt)
       .then(resolve)
       .catch(reject);
   });

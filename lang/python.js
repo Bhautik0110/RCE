@@ -1,10 +1,10 @@
 const command = require("../command.js");
-const {runner, dir} = require('./common.js')
+const {runner} = require('./common.js')
 
 const runCode = (file, opt) => {
   return new Promise(async (resolve, reject) => {
     command("python", [file.name])
-      .run({cwd: dir(file.name), ...opt})
+      .run(opt)
       .then(resolve)
       .catch(reject)
   });

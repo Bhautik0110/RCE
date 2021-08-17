@@ -32,9 +32,9 @@ const runner = (progName, code, input, expected, mainCmd, preCmds = []) => {
     }
     fileWrite(code, { name: progName })
     .then(({file, folder}) => {
-      Promise.all(preCmds.map(p => p(file)))
+      Promise.all(preCmds.map(p => p(file, {cwd: dir(file.name)})))
       .then(() => {
-        mainCmd(file, {input})
+        mainCmd(file, {input, cwd: dir(file.name)})
         .then(({error, output, timeout}) => {
           folder.removeCallback()
           let message = "Program run successfully."
@@ -79,4 +79,4 @@ const runner = (progName, code, input, expected, mainCmd, preCmds = []) => {
 }
 
 
-module.exports = { dir, runner }
+module.exports = { runner }
