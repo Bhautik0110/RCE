@@ -47,4 +47,4 @@ RUN javac -version && \
     php -v && \
     python -V
 
-CMD ["node", "server.js"]
+CMD ["node", "index.js"]
