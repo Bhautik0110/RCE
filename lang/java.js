@@ -12,7 +12,6 @@ const compileCode = (file, opt) => {
 
 const runCode = (file, opt) => {
   return new Promise((resolve, reject) => {
-    let exFile = file.name.substr(0, file.name.length - 5);
     command("java", ["Program"])
       .run(opt)
       .then(resolve)
