@@ -1,4 +1,4 @@
-const command = require("../fcmd.js");
+const command = require("../command.js");
 const {runner, dir} = require('./common.js')
 
 const compileCode = file => {

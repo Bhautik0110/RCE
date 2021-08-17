@@ -1,149 +1,82 @@
-// const { spawn, exec } = require("child_process");
-// const { streamWrite, streamEnd } = require("@rauschma/stringio");
-// const { SIGSTOP, SIGCONT } = require("constants");
+const { spawn, exec } = require("child_process");
+const { streamWrite, streamEnd } = require("@rauschma/stringio");
 
-const command = require("./fcmd");
+const command = (cmd, args = []) => {
+  let complete = false;
+  let waitControl = null;
 
+  const success = (fn, error, output, timeout = false) => {
+    if (complete) return;
+    if (waitControl != null) clearInterval(waitControl);
+    complete = true
+    fn({error, output, timeout})
+  }
 
-// class Command {
+  const fail = (fn, e) => {
+    if(complete) return;
+    if (waitControl != null) clearInterval(waitControl);
+    complete = true
+    fn(e)
+  }
 
-//   constructor(cmd, args = [], opts = {}) {
+  const run = opts => {
+    return new Promise((resolve, reject) => {
+      
+      let {input, timeout} = { timeout: 4000, ...opts };
+      let output = error = ""
 
-//     // console.log(cmd, args)
-//     let strcmd = [cmd, ...args].map(x => x.trim()).join(" ")
-//     // console.log("COMMAND: " + strcmd)
-//     let {input, timeout, cpu} = {
-//       input: "",
-//       timeout: 4000,
-//       ...opts
-//     }
-//     this.cmd = cmd;
-//     this.args = args;
-//     this.input = input;
-//     this.timeout = timeout; // command can take max 4s to execute, if excced then we terminate
-//     this.cpu = cpu;
-//     this.output = "";
-//     this.error = "";
-//     this.isTimeout = false;
-//     this.proc = null;
-//     this.waitControl = null;
-//   }
+      // Create new child process 
+      let p = spawn(cmd, args, {
+        stdio: ["pipe"],
+        ...opts
+      })
 
-//   hasError() {
-//     return this.error !== "";
-//   }
+      // Set wait control to end process if it take longer then timeout specified.
+      waitControl = setTimeout(() => {
+        if (!p.killed) {
+          p.kill(); /// Kill after 4s
+          success(resolve, error, output, true)
+        }
+      }, timeout)
 
-//   cleanUp(callback) {
-//     clearInterval(this.waitControl);
-//     callback();
-//   }
+      // Set Input Capturing
+      if (input) {
+        streamWrite(p.stdin, input).then(() => streamEnd(p.stdin));
+      } else streamEnd(p.stdin);
 
-//   setProcessTimeout(resolve) {
-//     try {
-//       this.waitControl = setTimeout(() => {
-//         if (!this.proc.killed) {
-//           this.proc.kill(); /// Kill after 4s
-//           this.isTimeout = true;
-//           resolve()
-//         }
-//       }, this.timeout);
-//     } catch (e) {
-//       reject(e);
-//     }
-//   }
+      // Collect output
+      p.stdout.on("data", data => { output += data.toString() });
+      p.stdout.on("end", () => { success(resolve, error, output) });
 
-//   handleOutput(resolve, reject) {
-//     try {
-//       /// Whenever data is received add to result
-//       this.proc.stdout.on("data", (data) => {
-//         // console.log("out >>", data.toString())
-//         this.output += data.toString();
-//       });
-  
-//       /// When output stream end
-//       this.proc.stdout.on("end", () => {
-//         this.cleanUp(resolve);
-//       });
-//     } catch (e) {
-//       reject(e);
-//     }
-//   }
+      // Collect errors
+      p.stderr.on("data", err => { error += err.toString() });
+      p.stderr.on("end", () => { 
+        if (error != "") {
+          p.kill();
+          success(resolve, error, output);
+        }
+      });
 
-//   handleError(resolve, reject) {
-//     try {
-//       /// Error occur in program
-//       this.proc.stderr.on("data", (err) => {
-//         // console.log("err >>", err.toString())
-//         this.error += err.toString();
-//       });
-  
-//       this.proc.stderr.on("end", () => {
-//         if (this.error) {
-//           this.proc.kill();
-//           this.cleanUp(resolve);
-//         }
-//       });
-//     } catch (e) {
-//       reject(e);
-//     }
-//   }
+      // Error handling
+      p.on('error', e => fail(reject, e));
+    })
+  }
 
-//   provideInput(resolve, reject) {
-//     try {
-//       if (this.input) {
-//         streamWrite(this.proc.stdin, this.input).then(() => streamEnd(this.proc.stdin));
-//       } else streamEnd(this.proc.stdin);
-//     } catch (e) {
-//       reject(e)
-//     }
-//   }
+  const execute = opts => {
+    return new Promise((resolve, reject) => {
+      exec([cmd, ...args].join(" "), opts, (err, out, serr) => {
+        if(err) {
+          return fail(reject, err)
+        }
+        if (serr) {
+          return success(resolve, serr, "")
+        }
+        success(resolve, "", out);
+      })
+    })
+  }
 
-//   run(opts = {}) {
-//     return new Promise(async (resolve, reject) => {
-//       this.proc = spawn(this.cmd, this.args, {
-//         timeout: this.timeout,
-//         stdio: ["pipe"],
-//         ...opts
-//       });
+  return { run, execute }
+}
 
-//       let done = false;
-//       const success = (...args) => {
-//         if(!done) {
-//           done = true;
-//           resolve(...args);
-//         }
-//       }
-//       const fail = (...args) => {
-//         if(!done) {
-//           done = true;
-//           reject(...args);
-//         }
-//       }
-//       this.setProcessTimeout(success, fail);
-//       this.provideInput(success, fail);
-//       this.handleOutput(success, fail);
-//       this.handleError(success, fail);
-//     });
-//   }
-  
-//   execute(opts = {}) {
-//     return new Promise((resolve, reject) => {
-//       exec([this.cmd, ...this.args].join(" "), opts, (err, out, serr) => {
-//         if(err) {
-//           // console.log("---- > rejecting !")
-//           return reject(err)
-//         }
-//         if (serr) {
-//           this.error = serr;
-//           return resolve()
-//         }
-//         this.output = out;
-//         resolve();
-//       })
-//     })
-//   }
-
-// }
-// module.exports = { Command }
-
-module.exports = { Command: command }
+module.exports = command

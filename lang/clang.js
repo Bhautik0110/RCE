@@ -1,4 +1,4 @@
-const command = require("../fcmd");
+const command = require("../command.js");
 const {runner} = require('./common.js')
 
 const executable = fpath => {
