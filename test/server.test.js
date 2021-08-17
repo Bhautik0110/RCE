@@ -187,6 +187,7 @@ describe("Check program for Java", () => {
         expect(err).to.be.null;
         expect(res).to.be.json
         expect(res).to.have.status(200)
+        expect(res.body.expected).to.equal(res.body.actual)
         expect(res.body.matches).to.be.true
         expect(res.body.message).to.equal("Program run successfully.")
         expect(res.body.expected).to.equal("Hello")
